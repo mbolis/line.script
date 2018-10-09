@@ -11,26 +11,27 @@
   "author": "Marco Bolis @sorintlab",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^8.5.5",
-    "@types/webpack": "^3.8.2",
-    "@types/webpack-merge": "^4.1.2",
-    "css-loader": "^0.28.9",
+    "@types/node": "^8.10.35",
+    "@types/webpack": "^3.8.15",
+    "@types/webpack-dev-server": "^3.1.1",
+    "@types/webpack-merge": "^4.1.3",
+    "css-loader": "^0.28.11",
     "license-banner-webpack-plugin": "^1.0.0",
-    "style-loader": "^0.20.1",
-    "ts-loader": "^3.2.0",
+    "style-loader": "^0.20.3",
+    "ts-loader": "^3.5.0",
     "ts-node": "^4.1.0",
     "tsconfig-paths-webpack-plugin": "^1.4.0",
-    "typescript": "^2.6.2",
-    "webpack": "^3.10.0",
+    "typescript": "^2.9.2",
+    "webpack": "^3.12.0",
     "webpack-dev-server": "2.9.7",
-    "webpack-merge": "^4.1.2"
+    "webpack-merge": "^4.1.4"
   },
   "dependencies": {
     "@types/acorn": "^4.0.3",
     "@types/codemirror": "0.0.55",
     "@types/es6-promise": "^3.3.0",
     "@types/mainloop.js": "^1.0.5",
-    "codemirror": "^5.34.0",
+    "codemirror": "^5.40.2",
     "js-interpreter": "^1.4.6",
     "mainloop.js": "^1.0.4"
   }

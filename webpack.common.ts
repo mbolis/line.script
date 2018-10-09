@@ -1,6 +1,5 @@
 import * as webpack from "webpack";
 import * as path from "path";
-import * as fs from "fs";
 import * as TsConfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 
 const config: webpack.Configuration = {
