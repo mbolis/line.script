@@ -169,10 +169,6 @@ let editor = CodeMirror.fromTextArea(txtCode, {
     mode: "javascript",
     tabSize: 2,
     extraKeys: {
-        "Tab": (cm) => {
-            var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
-            cm.replaceSelection(spaces);
-        },
         "Ctrl-Alt-Enter": () => setState("step-fwd"),
         "Ctrl-Enter": () => setState("playing"),
         "Shift-Ctrl-Enter": () => setState("fast-fwd")

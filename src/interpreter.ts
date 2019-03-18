@@ -233,11 +233,10 @@ export class Interpreter {
             })
         });
 
-        set("ask", (question: string) => {
-
+        set("ask", (question: any) => {
             MainLoop.stop(); // FIXME: find another way to make this sync, please!
 
-            let input = prompt(question);
+            let input = prompt(String(question));
 
             MainLoop.start(); // FIXME:
 
@@ -249,7 +248,7 @@ export class Interpreter {
             document.getElementById("out").innerHTML += words.join(" ");
         });
         set("println", (...lines: any[]) => {
-            document.getElementById("out").innerHTML += lines.join("\n");
+            document.getElementById("out").innerHTML += lines.join("\n") + "\n";
         });
 
         set("wait", (seconds: number) => {

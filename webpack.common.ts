@@ -1,6 +1,6 @@
 import * as webpack from "webpack";
 import * as path from "path";
-import * as TsConfigPathsPlugin from "tsconfig-paths-webpack-plugin";
+import TsConfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 
 const config: webpack.Configuration = {
     entry: "./src/index.ts",
