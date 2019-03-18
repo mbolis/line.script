@@ -5,8 +5,12 @@ import * as webpack from "webpack";
 import * as LicenseBannerPlugin from "license-banner-webpack-plugin";
 
 export default merge(common, {
+    mode: "production",
+    devtool: "source-map",
+    optimization: {
+        minimize: true
+    },
     plugins: [
-        new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
         new LicenseBannerPlugin(),
         new webpack.BannerPlugin(fs.readFileSync('./LICENSE', 'utf8'))
     ]
