@@ -210,7 +210,7 @@ export class Interpreter {
         let foreground = "black";
         prop("foreground", {
             get: fn(() => {
-                return foreground;
+                return wrap(foreground);
             }),
             set: fn((fg) => {
                 foreground = String(fg);
@@ -223,7 +223,7 @@ export class Interpreter {
         let background = "none";
         prop("background", {
             get: fn(() => {
-                return background;
+                return wrap(background);
             }),
             set: fn((bg) => {
                 background = String(bg);
@@ -262,7 +262,7 @@ export class Interpreter {
                 min = 0;
             }
             let delta = max - min;
-            return min + Math.random() * delta | 0;
+            return wrap(min + Math.random() * delta | 0);
         });
 
         set("rgb", (r: number, g: number, b: number) => {
@@ -270,7 +270,7 @@ export class Interpreter {
             checkRange("green", g, 0, 255);
             checkRange("blue", b, 0, 255);
 
-            return `rgb(${r | 0},${g | 0},${b | 0})`;
+            return wrap(`rgb(${r | 0},${g | 0},${b | 0})`);
         });
         set("rgba", (r: number, g: number, b: number, a: number) => {
             checkRange("red", r, 0, 255);
@@ -278,11 +278,33 @@ export class Interpreter {
             checkRange("blue", b, 0, 255);
             checkRange("alpha", a, 0, 1);
 
-            return `rgba(${r | 0},${g | 0},${b | 0},${a})`;
+            return wrap(`rgba(${r | 0},${g | 0},${b | 0},${a})`);
+        });
+        set("hsl", (h: number, s: number | string, l: number | string) => {
+            s = ensurePercent("saturation", s);
+            l = ensurePercent("lightness", l);
+            
+            return wrap(`hsl(${h | 0},${s}%,${l}%)`);
+        });
+        set("hsla", (h: number, s: number, l: number, a: number) => {
+            s = ensurePercent("saturation", s);
+            l = ensurePercent("lightness", l);
+            a = ensurePercent("alpha", a);
+            
+            return wrap(`hsla(${h | 0},${s}%,${l}%,${a}%)`);
         });
         function checkRange(name: string, value: number, min: number, max: number) {
             if (value < min) throw new Error(`${name} should be >= ${min} (was ${value})`);
             if (value > max) throw new Error(`${name} should be <= ${max} (was ${value})`);
+        }
+        function ensurePercent(name: string, value: number | string) {
+            if (typeof value === "string") {
+                const data = /^(\d{1,3})%$/.exec(value);
+                if (!data) throw new Error(`${name} should be a percentage (was ${value})`);
+                return +data[1];
+            } else {
+                return value * 100 |0;
+            }
         }
 
         function set(name: string, fnWrapper: Function) {
