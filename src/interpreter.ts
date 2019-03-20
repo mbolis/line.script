@@ -235,9 +235,7 @@ export class Interpreter {
 
         set("ask", (question: any) => {
             MainLoop.stop(); // FIXME: find another way to make this sync, please!
-
-            let input = prompt(String(question));
-
+            let input = prompt(String(question)); // FIXME: rework into asynchronous style!
             MainLoop.start(); // FIXME:
 
             return wrap(input);

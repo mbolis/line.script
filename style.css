@@ -58,6 +58,11 @@ button.red {
     background: #d81313;
     box-shadow: 0 0 1px 1px #8d0a0a;
 }
+button.blue {
+    background: #23a0ff;
+    box-shadow: 0 0 1px 1px #0a5d8d;
+}
+
 button.disabled,
 button.green.disabled,
 button.yellow.disabled,
@@ -170,10 +175,37 @@ button.red.disabled {
     border-bottom: 8px solid transparent;
 }
 
-#flags {
+#file {
+    float: right;
+}
+#load:after {
+    content: " ";
+    display: block;
     position: absolute;
-    right: 0.25em;
     bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 8px;
+    border-bottom: 4px solid white;
+}
+#load:before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 8px;
+    border-bottom: 8px solid white;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+}
+
+#flags {
+    float: right;
+    position: relative;
+    top: 0.75em;
+    right: 0.5em;
     text-align: right;
     color: gray;
     font: 100% monospace;
@@ -186,6 +218,106 @@ button.red.disabled {
 .CodeMirror {
     border-bottom: 1px solid silver;
     min-height: 50%;
+}
+
+#disk {
+    display: none;
+    overflow: auto;
+    border-bottom: 1px solid silver;
+    min-height: 50%;
+}
+#save_menu {
+    border-bottom: 1px solid silver;
+}
+#save_menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    font-family: monospace;
+}
+#save_menu li {
+    display: inline-block;
+    padding: 0.25em 1em;
+    color: gray;
+}
+#save_menu li:hover {
+    color: #444;
+    cursor: pointer;
+}
+#saves {
+    list-style: none;
+    font-family: monospace;
+    margin: 0;
+    padding: 0;
+}
+#saves li {
+    display: block;
+    padding: 0.25em 2em;
+    color: #555;
+    border: 1px solid white;
+    position: relative;
+}
+#saves li.currently-loaded {
+    background: #daeaff;
+}
+#saves li.currently-loaded::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0.5em;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #555;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
+#saves li:hover {
+    cursor: pointer;
+    background: lightsteelblue;
+    color: white;
+}
+#saves li:hover::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0.5em;
+    width: 0;
+    height: 0;
+    border-left: 8px solid white;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
+#saves .delete {
+    display: none;
+    text-align: center;
+}
+#saves li:hover .delete {
+    display: block;
+    position: absolute;
+    right: 0.25em;
+    top: 0.125em;
+    bottom: 0.125em;
+    width: 1.25em;
+    line-height: 1.25em;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 1px solid transparent;
+}
+#saves li:hover .delete::after {
+    content: "×";
+    display: block;
+    font-size: 180%;
+    font-weight: bold;
+}
+#saves li .delete:hover {
+    background: white;
+    color: red;
+    border: 1px solid red;
 }
 
 #out {

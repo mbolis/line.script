@@ -6,8 +6,8 @@ import "codemirror/mode/javascript/javascript";
 
 import { Animation, Frame } from "./frames";
 import { Interpreter, Instruction } from "./interpreter";
-import { nextTick } from "./scheduler";
 import { Painter } from "./gui";
+import * as disk from "./disk";
 
 class PainterStudio {
     private animation: Animation;
@@ -140,11 +140,11 @@ class PainterStudio {
     }
 }
 
-let canvasHolder = document.getElementById("canvas_holder");
-let canvas = document.getElementById("canvas") as HTMLCanvasElement;
-let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+const canvasHolder = document.getElementById("canvas_holder");
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
-let studio = new PainterStudio(ctx);
+const studio = new PainterStudio(ctx);
 
 window.addEventListener("resize", setCanvasSize);
 setCanvasSize();
@@ -163,27 +163,31 @@ function setCanvasSize() {
     studio.draw();
 }
 
-let txtCode = document.getElementById("code") as HTMLTextAreaElement;
-let editor = CodeMirror.fromTextArea(txtCode, {
+const txtCode = document.getElementById("code") as HTMLTextAreaElement;
+const editor = CodeMirror.fromTextArea(txtCode, {
     lineNumbers: true,
     mode: "javascript",
     tabSize: 2,
     extraKeys: {
         "Ctrl-Alt-Enter": () => setState("step-fwd"),
         "Ctrl-Enter": () => setState("playing"),
-        "Shift-Ctrl-Enter": () => setState("fast-fwd")
+        "Shift-Ctrl-Enter": () => setState("fast-fwd"),
+        "Ctrl-S": disk.saveOperation,
+        "Ctrl-O": disk.showDiskContent
     }
 });
 
-let txtOut = document.getElementById("out");
+disk.initialize(editor);
 
-let btnPause = document.getElementById("pause") as HTMLButtonElement;
-let btnSfwd = document.getElementById("sfwd") as HTMLButtonElement;
-let btnPlay = document.getElementById("play") as HTMLButtonElement;
-let btnFfwd = document.getElementById("ffwd") as HTMLButtonElement;
-let btnStop = document.getElementById("stop") as HTMLButtonElement;
+const txtOut = document.getElementById("out");
 
-let chkTrace = document.getElementById("trace") as HTMLInputElement;
+const btnPause = document.getElementById("pause") as HTMLButtonElement;
+const btnSfwd = document.getElementById("sfwd") as HTMLButtonElement;
+const btnPlay = document.getElementById("play") as HTMLButtonElement;
+const btnFfwd = document.getElementById("ffwd") as HTMLButtonElement;
+const btnStop = document.getElementById("stop") as HTMLButtonElement;
+
+const chkTrace = document.getElementById("trace") as HTMLInputElement;
 chkTrace.addEventListener("change", () => clearEditorMarks());
 
 type TransportState = "ready" | "playing" | "paused" | "step-fwd" | "fast-fwd" | "done";
@@ -211,13 +215,13 @@ const MAX_LOOP_COUNT = 10000;
 let interpreter: Interpreter;
 function getNextAnimation(loopCount = 0): Animation {
     try {
-        let instruction: Instruction = interpreter.stepToNextInstruction();
+        const instruction: Instruction = interpreter.stepToNextInstruction();
 
         if (instruction) {
             if (chkTrace.checked) {
                 clearEditorMarks();
-                let start = editor.findPosH(CodeMirror.Pos(0, 0), instruction.node.start, "char", true);
-                let end = editor.findPosH(CodeMirror.Pos(0, 0), instruction.node.end, "char", true);
+                const start = editor.findPosH(CodeMirror.Pos(0, 0), instruction.node.start, "char", true);
+                const end = editor.findPosH(CodeMirror.Pos(0, 0), instruction.node.end, "char", true);
                 editor.getDoc().markText(start, end, { css: "background: rgba(128,255,128,0.4)" })
 
                 return studio.setAnimation(instruction.animation || new Animation(10, (_, keyFrame) => keyFrame)); // FIXME:
@@ -250,8 +254,8 @@ function clearEditorMarks() {
     editor.getDoc().getAllMarks().forEach(mark => mark.clear());
 }
 function markError(start: number, end: number, message?: string) {
-    let startPos = editor.findPosH(CodeMirror.Pos(0, 0), start, "char", true);
-    let endPos = editor.findPosH(CodeMirror.Pos(0, 0), end, "char", true);
+    const startPos = editor.findPosH(CodeMirror.Pos(0, 0), start, "char", true);
+    const endPos = editor.findPosH(CodeMirror.Pos(0, 0), end, "char", true);
     editor.getDoc().markText(startPos, endPos, { css: "background: rgba(255,128,128,0.4)" })
 
     if (message) {
@@ -336,9 +340,9 @@ function ensureRunning() {
 
             setState("done");
 
-            let message = /(.*)\((\d+):(\d+)\)\s*$/.exec(err.message);
-            let startPos = CodeMirror.Pos(+message[2], +message[3]);
-            let token = editor.getTokenAt(startPos);
+            const message = /(.*)\((\d+):(\d+)\)\s*$/.exec(err.message);
+            const startPos = CodeMirror.Pos(+message[2], +message[3]);
+            const token = editor.getTokenAt(startPos);
             markError(token.start, token.end, message[1] + `'${token.string}'`);
 
             throw err;
@@ -369,7 +373,7 @@ function show(...elements: HTMLButtonElement[]) {
     enable(...elements);
 }
 
-let speed = 100;
+const speed = 100;
 
 function setupMainLoop() {
     MainLoop

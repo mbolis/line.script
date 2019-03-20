@@ -20,6 +20,9 @@
                 <button id=ffwd class=green>FastFwd</button>
                 <button id=stop class=red>Stop</button>
 
+                <div id=file>
+                    <button id=load class=blue>Load</button>
+                </div>
                 <div id=flags>
                     <label for=trace>
                         trace mode<input type=checkbox id=trace>
@@ -27,6 +30,14 @@
                 </div>
             </div>
             <textarea id=code cols=80 rows=25></textarea>
+            <div id=disk>
+                <nav id=save_menu>
+                    <ul>
+                        <li id=save>Save...</li>
+                    </ul>
+                </nav>
+                <ul id=saves></ul>
+            </div>
             <pre id=out></pre>
         </div>
     </div>
