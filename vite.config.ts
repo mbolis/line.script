@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const isProd = mode == "production";
 
   return {
+    base: isProd ? "/line.script/" : "/",
     build: {
       ourDir: ".",
       rollupOptions: {
