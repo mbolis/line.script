@@ -232,6 +232,18 @@ export class Interpreter {
       }),
     });
 
+    let speed = 100;
+    prop("speed", {
+      get: fn(() => speed),
+      set: fn((s: any) => {
+        speed = Number(s);
+        if (Number.isNaN(speed)) return;
+        this.animation = new Animation(0, (_, keyFrame: Frame) => {
+          return keyFrame.with({ speed });
+        });
+      }),
+    });
+
     setFn("ask", (question: any) => {
       MainLoop.stop(); // FIXME: find another way to make this sync, please!
       let input = prompt(String(question)); // FIXME: rework into asynchronous style!
