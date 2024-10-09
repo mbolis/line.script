@@ -68,14 +68,14 @@ class PainterStudio {
       }
 
       while (this.animation) {
-        this.animation.elapsed += delta / 1000 * speed;
+        this.animation.elapsed += delta / 1000 * this.frame.speed;
         if (this.animation.elapsed < this.animation.duration) {
           this.frame = this.animation.currentFrame;
           break;
         }
 
         this.frame = this.animation.lastFrame;
-        delta = (this.animation.elapsed - this.animation.duration) * 1000 / speed;
+        delta = (this.animation.elapsed - this.animation.duration) * 1000 / this.frame.speed;
         this.animation.elapsed = this.animation.duration;
 
         if (!getNextAnimation()) {
@@ -428,8 +428,6 @@ function show(...elements: HTMLButtonElement[]) {
   elements.forEach(element => element.style.display = "inline-block");
   enable(...elements);
 }
-
-const speed = 100;
 
 function setupMainLoop() {
   MainLoop

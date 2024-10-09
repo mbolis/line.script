@@ -9,6 +9,7 @@ type FrameMutations = {
   newStrokes?: Stroke[];
   foreground?: string;
   background?: string;
+  speed?: number;
 }
 export class Frame {
   static new() {
@@ -18,11 +19,13 @@ export class Frame {
   private constructor(
     readonly position: Vector2d = Vector2d.ORIGIN,
     readonly facing: Degrees = 0,
-    readonly height: number = 0,
-    readonly opacity: number = 1,
+    readonly height = 0,
+    readonly opacity = 1,
     readonly strokes: Stroke[] = [],
-    readonly foreground: string = "",
-    readonly background: string = "") { }
+    readonly foreground = "",
+    readonly background = "",
+    readonly speed = 100,
+  ) { }
 
   get facingRadians(): Radians {
     return deg2rad(this.facing);
@@ -36,7 +39,8 @@ export class Frame {
       "opacity" in properties ? properties.opacity : this.opacity,
       "newStrokes" in properties ? this.strokes.concat(properties.newStrokes) : this.strokes,
       "foreground" in properties ? properties.foreground : this.foreground,
-      "background" in properties ? properties.background : this.background);
+      "background" in properties ? properties.background : this.background,
+      "speed" in properties ? properties.speed : this.speed);
   }
 }
 
