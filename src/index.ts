@@ -222,7 +222,8 @@ document.addEventListener("keydown", e => {
     }
     if (e.key === "?") {
       e.preventDefault();
-      document.querySelector("#help").click();
+      const help = document.querySelector("#help") as HTMLElement;
+      help.click();
       return
     }
     if (e.key === "s" && !e.shiftKey && !e.altKey) {
