@@ -220,6 +220,11 @@ document.addEventListener("keydown", e => {
       }
       return
     }
+    if (e.key === "?") {
+      e.preventDefault();
+      document.querySelector("#help").click();
+      return
+    }
     if (e.key === "s" && !e.shiftKey && !e.altKey) {
       e.preventDefault();
       diskUI.saveCurrent();
