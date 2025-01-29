@@ -318,12 +318,16 @@ function clearEditorMarks() {
 function markError(start: number, end: number, message?: string) {
   const startPos = editor.findPosH(CodeMirror.Pos(0, 0), start, "char", true);
   const endPos = editor.findPosH(CodeMirror.Pos(0, 0), end, "char", true);
-  editor.getDoc().markText(startPos, endPos, { css: "background: rgba(255,128,128,0.4)" })
+  markErrorPos(startPos, endPos, message);
+}
+function markErrorPos(start: CodeMirror.Position, end: CodeMirror.Position, message?: string) {
+  editor.getDoc().markText(start, end, { css: "background: rgba(255,128,128,0.4)" })
 
   if (message) {
     output.error(message);
   }
 }
+
 
 setupMainLoop();
 
@@ -399,13 +403,15 @@ function ensureRunning() {
     try {
       interpreter = new Interpreter(txtCode.value);
     } catch (err) {
-      console.error(err)
+      //console.error(err)
       setState("done");
 
-      const message = /(.*)\((\d+):(\d+)\)\s*$/.exec(err.message);
-      const startPos = CodeMirror.Pos(+message[2], +message[3]);
-      const token = editor.getTokenAt(startPos);
-      markError(token.start, token.end, message[1] + `'${token.string}'`);
+      const [, message, line, ch] = /(.*) \((\d+):(\d+)\)\s*$/.exec(err.message);
+      const startPos = CodeMirror.Pos(+line, +ch);
+      const token = editor.getTokenAt(startPos, true);
+      startPos.line--;
+      const endPos = { ...startPos, ch: startPos.ch + token.string.length };
+      markErrorPos(startPos, endPos, `${message} '${token.string}' (${line}:${ch})`);
 
       throw err;
     }

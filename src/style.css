@@ -573,3 +573,22 @@ button.naked {
     margin-left: 1.25em;
     margin-bottom: 0.5em;
 }
+
+#useful_links {
+    display: inline-block;
+    padding: 0.25em;
+    line-height: 1;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+#useful_links > a {
+    color: inherit;
+    display: inline-block;
+    height: 32px;
+    width: 32px;
+    opacity: 0.25;
+}
+#useful_links > a:hover {
+    opacity: 1;
+}
