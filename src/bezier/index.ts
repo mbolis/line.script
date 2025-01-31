@@ -2,15 +2,15 @@ import type { Frame } from "../frames";
 import { Vector2d } from "../geometry";
 import { Bezier as BezierCurve, type BezierResult } from "./bezier";
 
-const subscribers = new Map<number, (r: BezierResult) => void>();
+const subscribers = new Map<number, (r: BezierResult[]) => void>();
 const worker = new Worker(new URL("./worker", import.meta.url), { type: "module" });
 worker.addEventListener("message", e => {
-  const { id, value, done } = e.data;
+  const { id, values, done } = e.data;
+
+  values.forEach((v: BezierResult) => v.position = Vector2d.of(v.position));
+  subscribers.get(id)(values);
   if (done) {
     subscribers.delete(id);
-  } else {
-    value.position = Vector2d.of(value.position);
-    subscribers.get(id)(value);
   }
 });
 
@@ -26,7 +26,7 @@ export class Bezier extends BezierCurve {
     super(p0, p1, p2, p3);
 
     const lut = this.lut;
-    subscribers.set(this.id, v => lut.push(v))
+    subscribers.set(this.id, v => lut.push(...v))
   }
 
   repositionAndCalculate(frame: Frame, sync: boolean) {
