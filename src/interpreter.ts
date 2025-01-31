@@ -1,12 +1,13 @@
 import JSInterpreter from "js-interpreter";
 import { Node } from "acorn";
-import { Degrees, Vector2d } from "./geometry";
+import { deg2rad, Degrees, Vector2d } from "./geometry";
 
 import { Animation, Frame } from "./frames";
 import { Stroke } from "./scene";
 import * as output from "./output";
 
 import MainLoop from "mainloop.js" // FIXME: we don't want you here!
+import { Bezier } from "./bezier";
 
 export type State = {
   node: Node;
@@ -52,17 +53,6 @@ type NativeInterpreter = {
 };
 interface InitFunc {
   (interpreter: NativeInterpreter, scope: any): any;
-}
-
-export interface Environment {
-  forward(distance: number): void;
-  back(distance: number): void;
-  left(angle: Degrees): void;
-  right(angle: Degrees): void;
-  up(): void;
-  down(): void;
-  hide(): void;
-  show(): void;
 }
 
 export class Instruction {
@@ -159,22 +149,22 @@ export class Interpreter {
   private readonly init: InitFunc = (interpreter, scope) => {
     setFn("forward", (distance: number, color?: string) => {
       this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
-        let from = keyFrame.position, angle = keyFrame.facingRadians;
-        let to = from.plus(Vector2d.polar(angle, distance * delta));
+        const from = keyFrame.position, angle = keyFrame.facingRadians;
+        const to = from.plus(Vector2d.polar(angle, distance * delta));
 
         if (keyFrame.height === 0) {
-          return keyFrame.with({ position: to, newStrokes: [new Stroke(from, to, color)] });
+          return keyFrame.with({ position: to, strokes: [...keyFrame.strokes, new Stroke(from, to, color)] });
         }
         return keyFrame.with({ position: to });
       });
     });
     setFn("back", (distance: number, color?: string) => {
       this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
-        let from = keyFrame.position, angle = keyFrame.facingRadians;
-        let to = from.plus(Vector2d.polar(angle, -distance * delta));
+        const from = keyFrame.position, angle = keyFrame.facingRadians;
+        const to = from.plus(Vector2d.polar(angle, -distance * delta));
 
         if (keyFrame.height === 0) {
-          return keyFrame.with({ position: to, newStrokes: [new Stroke(from, to, color)] });
+          return keyFrame.with({ position: to, strokes: [...keyFrame.strokes, new Stroke(from, to, color)] });
         }
         return keyFrame.with({ position: to });
       });
@@ -187,6 +177,32 @@ export class Interpreter {
     setFn("left", (angle: Degrees) => {
       this.animation = new Animation(ROTATE_DURATION * angle / 30, (delta: number, keyFrame: Frame) => {
         return keyFrame.with({ facing: keyFrame.facing + angle * delta });
+      });
+    });
+    setFn("bezier", (d1: number, a1: Degrees, d2: number, a2?: Degrees, d3?: number) => {
+      if (a2 !== undefined && d3 === undefined) throw new Error(`segment 3 length unspecified`);
+
+      let p0 = Vector2d.ORIGIN;
+      let p1 = p0.plus(Vector2d.y(d1));
+      let p2 = p1.plus(Vector2d.y(d2).rotate(deg2rad((a1))));
+      let p3 = a2 !== undefined && p2.plus(Vector2d.y(d3).rotate(deg2rad((a1 + a2))));
+      let firstRun = true;
+
+      const curve = new Bezier(p0, p1, p2, p3);
+
+      this.animation = new Animation(MOVE_DURATION * curve.approxLength / 10, (delta: number, keyFrame: Frame) => {
+        if (firstRun) {
+          curve.repositionAndCalculate(keyFrame, delta === 1);
+          firstRun = false;
+        }
+
+        const segments = curve.lookupValues(delta);
+        const { position, facing } = segments[segments.length - 1];
+        if (keyFrame.height === 0) {
+          const strokes = segments.map((f, i) => new Stroke((segments[i - 1] || keyFrame).position, f.position));
+          return keyFrame = keyFrame.with({ position, facing, strokes: [...keyFrame.strokes, ...strokes] });
+        }
+        return keyFrame = keyFrame.with({ position, facing });
       });
     });
     setFn("up", () => {
@@ -252,7 +268,6 @@ export class Interpreter {
       return input;
     });
 
-    // FIXME: no document.getElementById here!
     setFn("print", (...words: any[]) => {
       output.info(words.join(" "));
     });

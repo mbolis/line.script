@@ -575,7 +575,7 @@ button.naked {
 }
 
 #useful_links {
-    display: inline-block;
+    display: inline-block !important;
     padding: 0.25em;
     line-height: 1;
     position: absolute;

@@ -6,7 +6,7 @@ import "codemirror/mode/javascript/javascript";
 
 import { Animation, Frame } from "./frames";
 import { Interpreter, Instruction } from "./interpreter";
-import { Painter } from "./gui";
+import { DEFAULT_SCALE, Painter } from "./gui";
 import * as disk from "./disk";
 import * as output from "./output";
 import "./style.css";
@@ -91,11 +91,11 @@ class PainterStudio {
 
   draw() {
     this.drawPaper(this.ctx);
-    this.frame.strokes.forEach(stroke => stroke.defaultColor(this.frame.foreground).draw(ctx, 3.2));
+    this.frame.strokes.forEach(stroke => stroke.defaultColor(this.frame.foreground).draw(ctx, DEFAULT_SCALE));
     this.painter.draw(this.ctx);
   }
 
-  private drawPaper(ctx: CanvasRenderingContext2D, scale = 3.2) {
+  private drawPaper(ctx: CanvasRenderingContext2D, scale = DEFAULT_SCALE) {
     const WIDTH = ctx.canvas.width;
     const HEIGHT = ctx.canvas.height;
     const X = WIDTH / 2;

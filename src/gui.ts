@@ -4,12 +4,14 @@ import { Frame } from "./frames";
 export const ZOOM_DOWN = 1;
 export const ZOOM_UP = 1.5;
 
+export const DEFAULT_SCALE = 3.2;
+
 export class Painter {
   position: Vector2d = Vector2d.ORIGIN;
   facing: Degrees = 0;
   z = ZOOM_DOWN;
   zoom = 0.5;
-  scale = 3.2;
+  scale = DEFAULT_SCALE;
   opacity = 1;
   brushColor = "black";
 

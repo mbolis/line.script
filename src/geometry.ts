@@ -12,6 +12,10 @@ export class Vector2d {
   readonly x: number;
   readonly y: number;
 
+  static of({ x, y }: { x: number, y: number }) {
+    return new Vector2d(x, y);
+  }
+
   static x(x: number): Vector2d {
     return new Vector2d(x, 0);
   }
@@ -27,32 +31,36 @@ export class Vector2d {
     this.y = y;
   }
 
-  plus(that: Vector2d): Vector2d {
+  get length() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
+  }
+
+  plus(that: Vector2d) {
     return new Vector2d(this.x + that.x, this.y + that.y);
   }
 
-  minus(that: Vector2d): Vector2d {
+  minus(that: Vector2d) {
     return new Vector2d(this.x - that.x, this.y - that.y);
   }
 
-  scale(k: number): Vector2d {
+  scale(k: number) {
     return new Vector2d(k * this.x, k * this.y);
   }
 
-  rotate(th: Radians): Vector2d {
+  rotate(th: Radians) {
     let x = this.x * Math.cos(th) - this.y * Math.sin(th);
     let y = this.x * Math.sin(th) + this.y * Math.cos(th);
     return new Vector2d(x, y);
   }
 
-  segmentTo(point: Vector2d): Segment {
+  segmentTo(point: Vector2d) {
     return new Segment(this, point);
   }
-  segmentBy(translation: Vector2d): Segment {
+  segmentBy(translation: Vector2d) {
     return new Segment(this, this.plus(translation));
   }
 
-  toString(): string {
+  toString() {
     return `(${this.x},${this.y})`;
   }
 };
