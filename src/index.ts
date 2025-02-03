@@ -1,13 +1,13 @@
-import MainLoop from "mainloop.js"
+import MainLoop from "mainloop.js";
 
 import CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 import "codemirror/mode/javascript/javascript";
 
-import { Animation, Frame } from "./frames";
-import { Interpreter, Instruction } from "./interpreter";
-import { DEFAULT_SCALE, Painter } from "./gui";
 import * as disk from "./disk";
+import { Animation, Frame } from "./frames";
+import { DEFAULT_SCALE, Painter } from "./gui";
+import { Instruction, Interpreter } from "./interpreter";
 import * as output from "./output";
 import "./style.css";
 
@@ -403,15 +403,19 @@ function ensureRunning() {
     try {
       interpreter = new Interpreter(txtCode.value);
     } catch (err) {
-      //console.error(err)
       setState("done");
 
-      const [, message, line, ch] = /(.*) \((\d+):(\d+)\)\s*$/.exec(err.message);
-      const startPos = CodeMirror.Pos(+line, +ch);
-      const token = editor.getTokenAt(startPos, true);
-      startPos.line--;
-      const endPos = { ...startPos, ch: startPos.ch + token.string.length };
-      markErrorPos(startPos, endPos, `${message} '${token.string}' (${line}:${ch})`);
+      const errMessage = /(.*) \((\d+):(\d+)\)\s*$/.exec(err.message);
+      if (errMessage) {
+        const [, message, line, ch] = errMessage;
+        const startPos = CodeMirror.Pos(+line, +ch);
+        const token = editor.getTokenAt(startPos, true);
+        startPos.line--;
+        const endPos = { ...startPos, ch: startPos.ch + token.string.length };
+        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line}:${ch})`);
+      } else {
+        output.error(err);
+      }
 
       throw err;
     }

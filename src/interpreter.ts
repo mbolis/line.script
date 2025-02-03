@@ -1,12 +1,12 @@
-import JSInterpreter from "js-interpreter";
 import { Node } from "acorn";
+import JSInterpreter from "js-interpreter";
 import { deg2rad, Degrees, Vector2d } from "./geometry";
 
 import { Animation, Frame } from "./frames";
-import { Stroke } from "./scene";
 import * as output from "./output";
+import { Stroke } from "./scene";
 
-import MainLoop from "mainloop.js" // FIXME: we don't want you here!
+import MainLoop from "mainloop.js"; // FIXME: we don't want you here!
 import { Bezier } from "./bezier";
 
 export type State = {
@@ -147,7 +147,15 @@ export class Interpreter {
   }
 
   private readonly init: InitFunc = (interpreter, scope) => {
-    setFn("forward", (distance: number, color?: string) => {
+    let currentColor = "black";
+    prop("color", {
+      get: fn(() => currentColor),
+      set: fn((c: any) => {
+        currentColor = String(c);
+      }),
+    });
+
+    setFn("forward", (distance: number, color = currentColor) => {
       this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
         const from = keyFrame.position, angle = keyFrame.facingRadians;
         const to = from.plus(Vector2d.polar(angle, distance * delta));
@@ -158,7 +166,7 @@ export class Interpreter {
         return keyFrame.with({ position: to });
       });
     });
-    setFn("back", (distance: number, color?: string) => {
+    setFn("back", (distance: number, color = currentColor) => {
       this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
         const from = keyFrame.position, angle = keyFrame.facingRadians;
         const to = from.plus(Vector2d.polar(angle, -distance * delta));
