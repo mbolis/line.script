@@ -1,4 +1,3 @@
-import CodeMirror from "codemirror";
 import * as output from "./output";
 import EventEmitter from "events";
 

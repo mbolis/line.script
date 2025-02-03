@@ -407,14 +407,16 @@ function ensureRunning() {
 
       const errMessage = /(.*) \((\d+):(\d+)\)\s*$/.exec(err.message);
       if (errMessage) {
-        const [, message, line, ch] = errMessage;
-        const startPos = CodeMirror.Pos(+line, +ch);
-        const token = editor.getTokenAt(startPos, true);
-        startPos.line--;
+        const [, message, msgLine, msgCh] = errMessage;
+        const line = +msgLine - 1;
+        const ch = +msgCh;
+        const token = editor.getLineTokens(line, true).find(token => token.start === ch);
+        const startPos = CodeMirror.Pos(line, ch);
         const endPos = { ...startPos, ch: startPos.ch + token.string.length };
-        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line}:${ch})`);
+        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line+1}:${ch})`);
       } else {
-        output.error(err);
+        const message = err.message ?? err;
+        output.error(message);
       }
 
       throw err;

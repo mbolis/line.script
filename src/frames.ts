@@ -7,6 +7,7 @@ type FrameMutations = {
   height?: number;
   opacity?: number;
   strokes?: Stroke[];
+  color?: string;
   foreground?: string;
   background?: string;
   speed?: number;
@@ -23,6 +24,7 @@ export class Frame {
     readonly height = 0,
     readonly opacity = 1,
     readonly strokes = [] as Stroke[],
+    readonly color = "",
     readonly foreground = "",
     readonly background = "",
     readonly speed = 100,
@@ -34,14 +36,16 @@ export class Frame {
 
   with(properties: FrameMutations): Frame {
     return new Frame(
-      properties.position || this.position,
-      properties.facing !== undefined ? properties.facing : this.facing,
-      properties.height !== undefined ? properties.height : this.height,
-      properties.opacity !== undefined ? properties.opacity : this.opacity,
-      properties.strokes || this.strokes,
-      properties.foreground !== undefined ? properties.foreground : this.foreground,
-      properties.background !== undefined ? properties.background : this.background,
-      properties.speed !== undefined ? properties.speed : this.speed);
+      properties.position ?? this.position,
+      properties.facing ?? this.facing,
+      properties.height ?? this.height,
+      properties.opacity ?? this.opacity,
+      properties.strokes ?? this.strokes,
+      properties.color ?? this.color,
+      properties.foreground ?? this.foreground,
+      properties.background ?? this.background,
+      properties.speed ?? this.speed,
+    );
   }
 }
 
@@ -51,7 +55,8 @@ export class Animation {
 
   constructor(
     readonly duration: number,
-    readonly update: (delta: number, keyFrame: Frame) => Frame) { }
+    readonly update: (delta: number, keyFrame: Frame) => Frame,
+  ) { }
 
   get currentFrame(): Frame {
     return this.update(this.elapsed / this.duration, this.keyFrame);

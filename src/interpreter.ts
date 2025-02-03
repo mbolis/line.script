@@ -152,6 +152,9 @@ export class Interpreter {
       get: fn(() => currentColor),
       set: fn((c: any) => {
         currentColor = String(c);
+        this.animation = new Animation(0, (_, keyFrame: Frame) => {
+          return keyFrame.with({ color: currentColor });
+        });
       }),
     });
 

@@ -20,7 +20,7 @@ export class Painter {
     this.facing = frame.facing;
     this.z = ZOOM_DOWN + frame.height * (ZOOM_UP - ZOOM_DOWN);
     this.opacity = frame.opacity;
-    this.brushColor = frame.foreground;
+    this.brushColor = frame.color;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
