@@ -147,6 +147,8 @@ export class Interpreter {
   }
 
   private readonly init: InitFunc = (interpreter, scope) => {
+    scope.toString = () => "#GlobalScope";
+
     let currentColor = "black";
     prop("color", {
       get: fn(() => currentColor),
@@ -323,7 +325,7 @@ export class Interpreter {
     }
 
     function setFn(name: string, fnWrapper: Function) {
-      interpreter.setProperty(scope, name, fn(fnWrapper));
+      interpreter.setProperty(scope, name, fn(fnWrapper), JSInterpreter.READONLY_NONENUMERABLE_DESCRIPTOR);
     }
     function fn(wrapper: Function) {
       return interpreter.createNativeFunction(wrapper);
