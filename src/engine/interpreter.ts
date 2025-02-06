@@ -292,7 +292,7 @@ export class Interpreter {
       checkRange("lightness", l, 0, 1);
       checkRange("alpha", a, 0, 1);
 
-      return `hsl(${h | 0} ${s * 100} ${l * 100} / ${a * 100})`;
+      return `hsl(${h | 0} ${s * 100} ${l * 100} / ${a})`;
     });
     function checkRange(name: string, value: number, min: number, max: number) {
       if (value < min) throw new Error(`${name} should be >= ${min} (was ${value})`);

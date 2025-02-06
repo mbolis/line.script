@@ -1,0 +1,199 @@
+.button {
+    border: none;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    outline: 0;
+    
+    /* SR only content */
+    color: transparent;
+    text-indent: -9999px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.button:focus,
+.button:active {
+    outline: 1px solid orange;
+}
+
+.button::-moz-focus-inner {
+    border: 1px solid orange;
+}
+
+.button.green {
+    background: #23a023;
+    box-shadow: 1px 1px 0 1px #307030;
+}
+
+.button.green:hover {
+    box-shadow: 1px 1px 0 1px #307030, 1px 1px 2px 1px #1bd61b;
+}
+
+.button.yellow {
+    background: #dfdc27;
+    box-shadow: 1px 1px 0 1px #96930e;
+}
+
+.button.yellow:hover {
+    box-shadow: 1px 1px 0 1px #a8a60d, 1px 1px 2px 1px #fffb0c;
+}
+
+.button.red {
+    background: #d81313;
+    box-shadow: 1px 1px 0 1px #8d0a0a;
+}
+
+.button.red:hover {
+    box-shadow: 1px 1px 0 1px #8d0a0a, 1px 1px 2px 1px #f85757;
+}
+
+.button.blue {
+    background: #23a0ff;
+    box-shadow: 1px 1px 0 1px #1472b9;
+}
+
+.button.blue:hover {
+    box-shadow: 1px 1px 0 1px #1472b9, 1px 1px 2px 1px #50b3ff;
+}
+
+.button.disabled {
+    background: #d6d6d6 !important;
+    box-shadow: 1px 1px 0 1px #acacac !important;
+    cursor: default;
+}
+
+.button.stop {
+    display: none;
+}
+
+.button.stop::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 8px;
+    width: 0;
+    height: 16px;
+    border-right: 16px solid white;
+}
+
+.button.pause {
+    display: none;
+}
+
+.button.pause::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 8px;
+    width: 0;
+    height: 16px;
+    border-right: 6px solid white;
+}
+
+.button.pause::before {
+    content: " ";
+    position: absolute;
+    display: block;
+    top: 0;
+    right: 0;
+    margin: 8px;
+    width: 0;
+    height: 16px;
+    border-left: 6px solid white;
+}
+
+.button.sfwd::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 8px;
+    width: 0;
+    border-left: 8px solid white;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.button.sfwd::before {
+    content: " ";
+    position: absolute;
+    display: block;
+    top: 0;
+    right: 0;
+    margin: 8px;
+    width: 0;
+    height: 16px;
+    border-left: 6px solid white;
+}
+
+.button.play::after {
+    content: " ";
+    position: absolute;
+    display: block;
+    top: 0;
+    right: 0;
+    margin: 8px;
+    width: 0;
+    border-left: 16px solid white;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.button.ffwd::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 8px;
+    width: 0;
+    border-left: 8px solid white;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.button.ffwd::before {
+    content: " ";
+    position: absolute;
+    display: block;
+    top: 0;
+    right: 0;
+    margin: 8px;
+    width: 0;
+    border-left: 8px solid white;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.button.load:after {
+    content: " ";
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 8px;
+    border-bottom: 4px solid white;
+}
+
+.button.load:before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 8px;
+    border-bottom: 8px solid white;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+}

@@ -1,0 +1,17 @@
+.transport {
+    display: flex;
+    gap: 0.25em;
+    padding: 0.25em;
+    border-bottom: 1px solid silver;
+    position: relative;
+    cursor: default;
+}
+
+.flags {
+    display: inline-flex;
+    gap: 0.25em;
+    align-items: center;
+    position: relative;
+    color: gray;
+    font: 100% monospace;
+}

@@ -1,0 +1,12 @@
+.link {
+  all: unset;
+  display: inline;
+  text-decoration: underline;
+  color: cornflowerblue;
+  cursor: pointer;
+}
+
+.link:hover,
+.link:focus {
+  color: #3e73d4;
+}

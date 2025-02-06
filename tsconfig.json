@@ -13,6 +13,7 @@
       "DOM",
       "DOM.Iterable"
     ],
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "moduleDetection": "auto",
@@ -23,9 +24,18 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@/jsx"
+    "jsxImportSource": "@/jsx",
+    "plugins": [
+      {
+        "name": "typescript-plugin-css-modules",
+        "options": {
+          "classnameTransform": "camelCaseOnly",
+          "goToDefinition": true,
+        },
+      }
+    ]
   },
   "include": [
     "src"
-  ]
+  ],
 }

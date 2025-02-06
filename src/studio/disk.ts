@@ -1,5 +1,3 @@
-import * as editor from "./studio/editor";
-import * as output from "./studio/output";
 import EventEmitter from "events";
 
 type DiskState = { name?: string, code: string };

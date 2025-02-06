@@ -23,7 +23,7 @@
     bottom: 0;
     width: 500px;
 }
-
+/* 
 #transport {
     padding: 0.25em;
     border-bottom: 1px solid silver;
@@ -286,8 +286,8 @@ button.naked {
 .CodeMirror {
     border-bottom: 1px solid silver;
     min-height: 50%;
-}
-
+} */
+/* 
 #disk {
     display: none;
     overflow: auto;
@@ -410,7 +410,7 @@ button.naked {
     position: relative;
     box-sizing: border-box;
     line-height: 100%;
-    /* transform: scale(.7); */
+    /* transform: scale(.7);
     margin: -0.25em 0.125em;
 }
 
@@ -498,7 +498,7 @@ button.naked {
 
 #saves .save:hover {
     filter: drop-shadow(0 0 1px green);
-}
+} */
 
 #out {
     padding: 0.5em;

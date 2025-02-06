@@ -1,13 +1,17 @@
 import { defineConfig } from "vite";
 import license from "rollup-plugin-license";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
-import path from "path";
+import * as path from "node:path";
 
 export default defineConfig(({ mode }) => {
   const isProd = mode == "production";
 
   return {
     base: isProd ? "/line.script/" : "/",
+    css: {
+      modules: {
+        localsConvention: "camelCaseOnly",
+      },
+    },
     build: {
       rollupOptions: {
         plugins: [
@@ -18,7 +22,6 @@ export default defineConfig(({ mode }) => {
               },
             },
           }),
-          nodePolyfills(),
         ],
         output: {
           entryFileNames: "app.js",

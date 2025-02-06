@@ -1,0 +1,15 @@
+.checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox > input[type=checkbox] {
+  cursor: pointer;
+}
+
+.checkbox:hover,
+.checkbox:focus {
+    color: #676774;
+    text-decoration: underline;
+    cursor: pointer;
+}
