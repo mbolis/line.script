@@ -1,9 +1,13 @@
-import type { Frame } from "../frames";
 import { rad2deg, Vector2d, type Degrees } from "../geometry";
 
 export interface BezierResult {
   position: Vector2d;
   facing: Degrees;
+}
+
+export interface PositionAndFacing {
+  position: Vector2d;
+  facingRadians: number;
 }
 
 export class Bezier {
@@ -33,7 +37,7 @@ export class Bezier {
     this.d32 = p3 && this.p3.minus(p2);
   }
 
-  protected reposition({ position, facingRadians }: Frame) {
+  protected reposition({ position, facingRadians }: PositionAndFacing) {
     this.p0 = this.p0.rotate(facingRadians).plus(position);
     this.p1 = this.p1.rotate(facingRadians).plus(position);
     this.p2 = this.p2.rotate(facingRadians).plus(position);

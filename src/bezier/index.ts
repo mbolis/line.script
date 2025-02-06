@@ -1,6 +1,6 @@
-import type { Frame } from "../frames";
+import type { Frame } from "../state";
 import { Vector2d } from "../geometry";
-import { Bezier as BezierCurve, type BezierResult } from "./bezier";
+import { Bezier as BezierCurve, PositionAndFacing, type BezierResult } from "./bezier";
 
 const subscribers = new Map<number, (r: BezierResult[]) => void>();
 const worker = new Worker(new URL("./worker", import.meta.url), { type: "module" });
@@ -29,7 +29,7 @@ export class Bezier extends BezierCurve {
     subscribers.set(this.id, v => lut.push(...v))
   }
 
-  repositionAndCalculate(frame: Frame, sync: boolean) {
+  repositionAndCalculate(frame: PositionAndFacing, sync: boolean) {
     this.reposition(frame);
     if (sync) {
       const length = this.approxLength;

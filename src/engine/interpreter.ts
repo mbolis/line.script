@@ -1,15 +1,15 @@
 import { Node } from "acorn";
 import JSInterpreter from "js-interpreter";
-import { deg2rad, Degrees, Vector2d } from "./geometry";
+import { deg2rad, Degrees, Vector2d } from "../geometry";
 
-import { Animation, Frame } from "./frames";
-import * as output from "./output";
-import { Stroke } from "./scene";
+import * as output from "../studio/output";
+import { Stroke } from "../scene";
+import state, { Animation, Change, Mutation, Wait } from "../state";
 
 import MainLoop from "mainloop.js"; // FIXME: we don't want you here!
-import { Bezier } from "./bezier";
+import { Bezier } from "../bezier";
 
-export type State = {
+type State = {
   node: Node;
   value?: any;
   mode_?: any;
@@ -47,6 +47,7 @@ type NativeInterpreter = {
   parentScope: any;
   setProperty(scope: any, name: string, value: any, desc?: PropertyDescriptor);
   createNativeFunction(fn: Function): any;
+  createAsyncFunction(fn: Function): any;
   createPrimitive(value: any): any;
   createObject(value: any): any;
   getScope(): any;
@@ -58,7 +59,7 @@ interface InitFunc {
 export class Instruction {
   constructor(
     readonly currentState: State,
-    readonly animation: Animation) { }
+    readonly mutation: Mutation) { }
 
   get node() {
     let state = this.currentState, node = state.node;
@@ -116,30 +117,26 @@ export class Instruction {
   }
 }
 
-interface Stack<T> {
-  push(item: T): number;
-  pop(): T;
-  peek(): T;
-  map<R>(fn: (t: T) => R): R;
+class Stack<T> extends Array<T> {
+  constructor() {
+    super();
+  }
+
+  peek() {
+    return this[this.length - 1];
+  }
 }
 
-const MOVE_DURATION = 50;
-const ROTATE_DURATION = 25;
+const MOVE_DURATION = 5;
+const ROTATE_DURATION = 1;
 const RISE_DURATION = 25;
 const FALL_DURATION = 25;
 const FADE_DURATION = 25;
-//const WAIT_DURATION = 10;
+const WAIT_DURATION = 80;
 
 export class Interpreter {
   private interpreter: NativeInterpreter;
-
-  private instructionStack: Stack<Node> = (() => {
-    let instructionStack = [] as any;
-    instructionStack.peek = function (): Node {
-      return this[this.length - 1];
-    };
-    return instructionStack as Stack<Node>;
-  })();
+  private instructionStack = new Stack<Node>();
 
   constructor(readonly code: string) {
     this.interpreter = new JSInterpreter(code, this.init);
@@ -147,48 +144,33 @@ export class Interpreter {
   }
 
   private readonly init: InitFunc = (interpreter, scope) => {
-    let currentColor = "black";
-    prop("color", {
-      get: fn(() => currentColor),
-      set: fn((c: any) => {
-        currentColor = String(c);
-        this.animation = new Animation(0, (_, keyFrame: Frame) => {
-          return keyFrame.with({ color: currentColor });
-        });
-      }),
-    });
-
-    setFn("forward", (distance: number, color = currentColor) => {
-      this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
-        const from = keyFrame.position, angle = keyFrame.facingRadians;
-        const to = from.plus(Vector2d.polar(angle, distance * delta));
-
-        if (keyFrame.height === 0) {
-          return keyFrame.with({ position: to, strokes: [...keyFrame.strokes, new Stroke(from, to, color)] });
+    setFn("forward", (distance: number, color = state.color) => {
+      this.mutation = new Animation(MOVE_DURATION * distance, (delta, s) => {
+        const position = s.position.plus(Vector2d.polar(s.facingRadians, distance * delta));
+        return {
+          position,
+          ...s.height === 0 && { currentStrokes: [new Stroke(s.position, position, color)] },
         }
-        return keyFrame.with({ position: to });
       });
     });
-    setFn("back", (distance: number, color = currentColor) => {
-      this.animation = new Animation(MOVE_DURATION * distance / 10, (delta: number, keyFrame: Frame) => {
-        const from = keyFrame.position, angle = keyFrame.facingRadians;
-        const to = from.plus(Vector2d.polar(angle, -distance * delta));
-
-        if (keyFrame.height === 0) {
-          return keyFrame.with({ position: to, strokes: [...keyFrame.strokes, new Stroke(from, to, color)] });
+    setFn("back", (distance: number, color = state.color) => {
+      this.mutation = new Animation(MOVE_DURATION * distance, (delta, s) => {
+        const position = s.position.plus(Vector2d.polar(s.facingRadians, -distance * delta));
+        return {
+          position,
+          ...s.height === 0 && { currentStrokes: [new Stroke(s.position, position, color)] },
         }
-        return keyFrame.with({ position: to });
       });
     });
     setFn("right", (angle: Degrees) => {
-      this.animation = new Animation(ROTATE_DURATION * angle / 30, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ facing: keyFrame.facing - angle * delta });
-      });
+      this.mutation = new Animation(ROTATE_DURATION * angle, (delta, { facing }) => ({
+        facing: facing - angle * delta,
+      }));
     });
     setFn("left", (angle: Degrees) => {
-      this.animation = new Animation(ROTATE_DURATION * angle / 30, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ facing: keyFrame.facing + angle * delta });
-      });
+      this.mutation = new Animation(ROTATE_DURATION * angle, (delta, { facing }) => ({
+        facing: facing + angle * delta,
+      }));
     });
     setFn("bezier", (d1: number, a1: Degrees, d2: number, a2?: Degrees, d3?: number) => {
       if (a2 !== undefined && d3 === undefined) throw new Error(`segment 3 length unspecified`);
@@ -201,82 +183,73 @@ export class Interpreter {
 
       const curve = new Bezier(p0, p1, p2, p3);
 
-      this.animation = new Animation(MOVE_DURATION * curve.approxLength / 10, (delta: number, keyFrame: Frame) => {
+      this.mutation = new Animation(MOVE_DURATION * curve.approxLength, (delta, state) => {
         if (firstRun) {
-          curve.repositionAndCalculate(keyFrame, delta === 1);
+          curve.repositionAndCalculate(state, delta === 1);
           firstRun = false;
         }
 
         const segments = curve.lookupValues(delta);
         const { position, facing } = segments[segments.length - 1];
-        if (keyFrame.height === 0) {
-          const strokes = segments.map((f, i) => new Stroke((segments[i - 1] || keyFrame).position, f.position));
-          return keyFrame = keyFrame.with({ position, facing, strokes: [...keyFrame.strokes, ...strokes] });
-        }
-        return keyFrame = keyFrame.with({ position, facing });
+
+        return {
+          position, facing,
+          ...state.height === 0 && segments.map(
+            (f, i) => new Stroke((segments[i - 1] || state).position, f.position)
+          ),
+        };
       });
     });
     setFn("up", () => {
-      this.animation = new Animation(RISE_DURATION, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ height: delta });
-      });
+      this.mutation = new Animation(RISE_DURATION, (delta) => ({ height: delta }));
     });
     setFn("down", () => {
-      this.animation = new Animation(FALL_DURATION, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ height: 1 - delta });
-      });
+      this.mutation = new Animation(FALL_DURATION, (delta) => ({ height: 1 - delta }));
     });
     setFn("hide", () => {
-      this.animation = new Animation(FADE_DURATION, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ opacity: 1 - delta });
-      });
+      this.mutation = new Animation(FADE_DURATION, (delta) => ({ opacity: 1 - delta }));
     });
     setFn("show", () => {
-      this.animation = new Animation(FADE_DURATION, (delta: number, keyFrame: Frame) => {
-        return keyFrame.with({ opacity: delta });
-      });
+      this.mutation = new Animation(FADE_DURATION, (delta) => ({ opacity: delta }));
     });
 
-    let foreground = "black";
+    prop("color", {
+      get: fn(() => state.color),
+      set: fn((color: any) => {
+        color = String(color);
+        this.mutation = new Change(() => ({ color }));
+      }),
+    });
     prop("foreground", {
-      get: fn(() => foreground),
-      set: fn((fg: any) => {
-        foreground = String(fg);
-        this.animation = new Animation(0, (_, keyFrame: Frame) => {
-          return keyFrame.with({ foreground });
-        });
+      get: fn(() => state.foreground),
+      set: fn((foreground: any) => {
+        foreground = String(foreground);
+        this.mutation = new Change(() => ({ foreground }));
       }),
     });
-
-    let background = "none";
     prop("background", {
-      get: fn(() => background),
-      set: fn((bg: any) => {
-        background = String(bg);
-        this.animation = new Animation(0, (_, keyFrame: Frame) => {
-          return keyFrame.with({ background });
-        });
+      get: fn(() => state.background),
+      set: fn((background: any) => {
+        background = String(background);
+        this.mutation = new Change(() => ({ background }));
       }),
     });
 
-    let speed = 100;
     prop("speed", {
-      get: fn(() => speed),
-      set: fn((s: any) => {
-        speed = Number(s);
-        if (Number.isNaN(speed)) return;
-        this.animation = new Animation(0, (_, keyFrame: Frame) => {
-          return keyFrame.with({ speed });
-        });
+      get: fn(() => state.speed),
+      set: fn((speed: any) => {
+        speed = Number(speed);
+        if (Number.isNaN(speed)) throw new Error("speed must be a number");
+        this.mutation = new Change(() => ({ speed }));
       }),
     });
 
-    setFn("ask", (question: any) => {
+    setAsyncFn("ask", (question: string, done: (v: string | null) => void) => {
       MainLoop.stop(); // FIXME: find another way to make this sync, please!
       let input = prompt(String(question)); // FIXME: rework into asynchronous style!
       MainLoop.start(); // FIXME:
 
-      return input;
+      Promise.resolve(input).then(done);
     });
 
     setFn("print", (...words: any[]) => {
@@ -287,7 +260,7 @@ export class Interpreter {
     });
 
     setFn("wait", (seconds: number) => {
-      this.animation = new Animation(seconds * 80, (_, keyFrame: Frame) => keyFrame); // FIXME: Magic Number!
+      this.mutation = new Wait(seconds * WAIT_DURATION);
     });
 
     setFn("random", (min?: number, max?: number) => {
@@ -331,6 +304,10 @@ export class Interpreter {
     function prop(name: string, desc: PropertyDescriptor) {
       interpreter.setProperty(scope, name, JSInterpreter.VALUE_IN_DESCRIPTOR, desc);
     }
+    type FnWithCallback = (...args: [...params: any[], cb: (v: any) => void]) => any;
+    function setAsyncFn(name: string, fnWrapper: FnWithCallback) {
+      interpreter.setProperty(scope, name, interpreter.createAsyncFunction(fnWrapper));
+    }
   };
 
   reset() {
@@ -352,15 +329,15 @@ export class Interpreter {
   private get currentState(): State {
     return this.interpreter.stateStack[this.interpreter.stateStack.length - 1];
   }
-  private get currentNode(): Node {
+  private get currentNode() {
     return this.instructionStack.peek();
   }
 
   private state: State;
-  private animation: Animation;
-  private currentInstruction(): Instruction {
-    let instruction = new Instruction(this.state, this.animation);
-    this.animation = null;
+  private mutation: Mutation;
+  private makeCurrentInstruction(): Instruction {
+    const instruction = new Instruction(this.state, this.mutation);
+    this.mutation = null;
     return instruction;
   }
 
@@ -478,6 +455,6 @@ export class Interpreter {
       return null;
     }
 
-    return this.currentInstruction();
+    return this.makeCurrentInstruction();
   }
 };
