@@ -302,7 +302,7 @@ export class Interpreter {
       return min + Math.random() * delta | 0;
     });
 
-    setFn("rgb", (r: number, g: number, b: number, a?: number) => {
+    setFn("rgb", (r: number, g: number, b: number, a = 1) => {
       checkRange("red", r, 0, 255);
       checkRange("green", g, 0, 255);
       checkRange("blue", b, 0, 255);
@@ -310,12 +310,12 @@ export class Interpreter {
 
       return `rgb(${r | 0} ${g | 0} ${b | 0} / ${a})`;
     });
-    setFn("hsl", (h: number, s: number, l: number, a?: number) => {
+    setFn("hsl", (h: number, s: number, l: number, a = 1) => {
       checkRange("saturation", s, 0, 1);
       checkRange("lightness", l, 0, 1);
       checkRange("alpha", a, 0, 1);
 
-      return `hsl(${h | 0} ${s} ${l} / ${a})`;
+      return `hsl(${h | 0} ${s * 100} ${l * 100} / ${a * 100})`;
     });
     function checkRange(name: string, value: number, min: number, max: number) {
       if (value < min) throw new Error(`${name} should be >= ${min} (was ${value})`);
