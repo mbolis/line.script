@@ -1,3 +1,5 @@
+import { DrawingContext } from "./draw";
+
 export type Radians = number;
 export type Degrees = number;
 
@@ -92,10 +94,13 @@ export class Segment {
     return this._length;
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(dctx: DrawingContext) {
+    const ctx = dctx.ctx;
+    const scaled = dctx.getScaled(this);
+
     ctx.beginPath();
-    ctx.moveTo(this.from.x, this.from.y);
-    ctx.lineTo(this.to.x, this.to.y);
+    ctx.moveTo(scaled.from.x, scaled.from.y);
+    ctx.lineTo(scaled.to.x, scaled.to.y);
     ctx.stroke();
   }
 
@@ -112,49 +117,12 @@ export class Segment {
     return new Segment(this.from.scale(k), this.to.scale(k));
   }
 
+  translated(dx: number, dy: number): Segment {
+    const d = new Vector2d(dx, dy);
+    return new Segment(this.from.plus(d), this.to.plus(d));
+  }
+
   toString(): string {
     return `${this.from}->${this.to}`;
-  }
-}
-
-type FromTo = [Coords, Coords];
-
-function fromTo2Segment(fromTo: FromTo) {
-  return new Segment(fromTo[0], fromTo[1]);
-}
-
-export class Path {
-  private fragments: Segment[];
-  constructor(fragments: Array<Segment | FromTo> = []) {
-    this.fragments = fragments.map(fragment =>
-      (fragment instanceof Segment) ? fragment : fromTo2Segment(fragment));
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.save();
-    this.fragments.forEach(segment => segment.draw(ctx));
-    ctx.restore();
-  }
-
-  push(next: Segment): Path {
-    return new Path(this.fragments.concat(next));
-  }
-
-  get totalLength(): number {
-    let totalLength = 0;
-    for (let i = 0; i < this.fragments.length; i++) {
-      let fragment = this.fragments[i];
-      totalLength += fragment.length;
-    }
-
-    return totalLength;
-  }
-
-  scaled(k: number) {
-    return new Path(this.fragments.map(segment => segment.scaled(k)));
-  }
-
-  toString(): string {
-    return this.fragments.join(", ");
   }
 }

@@ -1,20 +1,6 @@
-import * as output from "./output";
+import * as editor from "./studio/editor";
+import * as output from "./studio/output";
 import EventEmitter from "events";
-
-function debounce(func: Function, wait: number, immediate?: boolean) {
-  let timeout: any;
-  return function () {
-    var context = this, args = arguments;
-    var later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    var callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
-  };
-};
 
 type DiskState = { name?: string, code: string };
 
@@ -24,12 +10,12 @@ class RAM {
     return { ...this.#currentState };
   }
 
-  constructor(private editor: CodeMirror.Editor) {
+  constructor() {
     const ramValue = localStorage.getItem("ram");
     this.#currentState = ramValue ? JSON.parse(ramValue) : { code: "" };
-    editor.setValue(this.#currentState.code);
+    editor.setCode(this.#currentState.code);
 
-    editor.on("change", debounce(() => this.writeCode(editor.getValue()), 400));
+    editor.onChange(code => this.writeCode(code));
   }
 
   private writeCode(code: string) {
@@ -45,7 +31,7 @@ class RAM {
     this.#currentState = state;
     this.persist();
 
-    this.editor.setValue(state.code);
+    editor.setCode(state.code);
   }
 
   attach(name: string) {
@@ -248,10 +234,9 @@ class UI {
 
 
   constructor(
-    editor: CodeMirror.Editor,
     private readonly saves: SavesList,
   ) {
-    this.editor = editor.getWrapperElement();
+    this.editor = editor.el;
     this.dialog = document.getElementById("disk") as HTMLDivElement;
 
     this.button = document.getElementById("load") as HTMLButtonElement;
@@ -262,13 +247,13 @@ class UI {
         this.showDialog()
       }
     });
-    
+
     this.saveButton = document.getElementById("save") as HTMLLIElement;
     this.saveButton.addEventListener("click", this.saveNew.bind(this));
     this.nameSaveButton();
     saves.on("saved", this.nameSaveButton.bind(this));
     saves.on("deleted", this.nameSaveButton.bind(this));
-    
+
     saves.on("restored", this.hideDialog.bind(this));
   }
 
@@ -313,17 +298,8 @@ class UI {
   }
 }
 
-let uis = new Map<CodeMirror.Editor, UI>();
+const ram = new RAM();
+const disk = new Disk();
+const saves = new SavesList(ram, disk);
 
-export function initialize(editor: CodeMirror.Editor) {
-  let ui = uis.get(editor);
-  if (ui) return ui;
-
-  const ram = new RAM(editor);
-  const disk = new Disk();
-  const saves = new SavesList(ram, disk);
-
-  ui = new UI(editor, saves);
-  uis.set(editor, ui);
-  return ui;
-}
+export default new UI(saves);

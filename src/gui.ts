@@ -1,46 +1,24 @@
-import { Vector2d, Degrees, deg2rad } from "./geometry";
-import { Frame } from "./frames";
+import { DrawingContext } from "./draw";
+import state from "./state";
 
-export const ZOOM_DOWN = 1;
-export const ZOOM_UP = 1.5;
+const ZOOM_DOWN = 1;
+const ZOOM_UP = 1.5;
 
-export const DEFAULT_SCALE = 3.2;
-
-export class Painter {
-  position: Vector2d = Vector2d.ORIGIN;
-  facing: Degrees = 0;
-  z = ZOOM_DOWN;
-  zoom = 0.5;
-  scale = DEFAULT_SCALE;
-  opacity = 1;
-  brushColor = "black";
-
-  update(frame: Frame) {
-    this.position = frame.position.scale(this.scale);
-    this.facing = frame.facing;
-    this.z = ZOOM_DOWN + frame.height * (ZOOM_UP - ZOOM_DOWN);
-    this.opacity = frame.opacity;
-    this.brushColor = frame.color;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    let cx = this.position.x;
-    let cy = this.position.y;
-
-    let _5 = 5 * this.scale * this.zoom * this.z;
-    let _3 = 3 * this.scale * this.zoom * this.z;
-
+class Robot {
+  draw(dctx: DrawingContext) {
+    const ctx = dctx.ctx;
     ctx.save();
 
-    ctx.translate(cx, cy);
-    ctx.rotate(deg2rad(this.facing));
+    const c = dctx.getScaled(state.position);
+    ctx.translate(c.x, c.y);
+    ctx.rotate(state.facingRadians);
 
-    let zRatio = (this.z - ZOOM_DOWN) / (ZOOM_UP - ZOOM_DOWN);
+    const zRatio = state.height;
 
     // dot
     ctx.save();
 
-    ctx.strokeStyle = this.brushColor;
+    ctx.strokeStyle = state.color ?? state.foreground;
     ctx.globalAlpha = 1 - zRatio;
 
     ctx.beginPath();
@@ -54,7 +32,12 @@ export class Painter {
     let red = 160 + 95 * (1 - zRatio) | 0;
     let green = 160 * zRatio | 0;
     let blue = 160 + 95 * (1 - zRatio) | 0;
-    ctx.strokeStyle = `rgba(${red},${green},${blue},${this.opacity})`;
+    ctx.strokeStyle = `rgba(${red},${green},${blue},${state.opacity})`;
+
+    const z = ZOOM_DOWN + zRatio * (ZOOM_UP - ZOOM_DOWN);
+    const zoom = dctx.getScaled(0.5 * z);
+    const _5 = 5 * zoom;
+    const _3 = 3 * zoom;
 
     ctx.beginPath();
     ctx.moveTo(_5, -_3);
@@ -66,3 +49,61 @@ export class Painter {
     ctx.restore();
   }
 }
+
+export const robot = new Robot();
+
+class Paper {
+  draw(dctx: DrawingContext) {
+    const ctx = dctx.ctx;
+
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const x0 = width / 2;
+    const y0 = height / 2;
+
+    ctx.save();
+
+    if (state.background) {
+      ctx.fillStyle = state.background;
+      ctx.fillRect(-x0, -y0, width, height);
+
+    } else {
+      ctx.fillStyle = "#DAEAFF";
+      ctx.fillRect(-x0, -y0, width, height);
+
+      ctx.strokeStyle = "white";
+      ctx.beginPath();
+      ctx.moveTo(0, -y0);
+      ctx.lineTo(0, y0);
+      ctx.moveTo(-x0, 0);
+      ctx.lineTo(x0, 0);
+      ctx.stroke();
+
+      const step = dctx.getScaled(5);
+
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      for (let x = step; x <= x0; x += step) {
+        ctx.moveTo(x, -y0);
+        ctx.lineTo(x, y0);
+      }
+      for (let x = -step; x >= -x0; x -= step) {
+        ctx.moveTo(x, -y0);
+        ctx.lineTo(x, y0);
+      }
+      for (let y = step; y <= y0; y += step) {
+        ctx.moveTo(-x0, y);
+        ctx.lineTo(x0, y);
+      }
+      for (let y = -step; y >= -y0; y -= step) {
+        ctx.moveTo(-x0, y);
+        ctx.lineTo(x0, y);
+      }
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+export const paper = new Paper();
