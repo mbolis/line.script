@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite"
@@ -14,7 +15,7 @@
     "@types/codemirror": "^5.60.15",
     "@types/node": "^22.7.4",
     "rollup-plugin-license": "^3.5.3",
-    "typescript": "^5.6.2",
+    "typescript": "^5.7.3",
     "vite": "^5.4.14",
     "vite-plugin-node-polyfills": "^0.22.0"
   },
@@ -22,6 +23,7 @@
     "@types/mainloop.js": "^1.0.7",
     "acorn": "^8.12.1",
     "codemirror": "^5.65.18",
+    "flyd": "^0.2.8",
     "js-interpreter": "^5.2.1",
     "mainloop.js": "^1.0.4"
   }

@@ -9,7 +9,6 @@ export default defineConfig(({ mode }) => {
   return {
     base: isProd ? "/line.script/" : "/",
     build: {
-      ourDir: ".",
       rollupOptions: {
         plugins: [
           license({
@@ -26,6 +25,11 @@ export default defineConfig(({ mode }) => {
         },
       },
       sourcemap: isProd ? true : "inline",
+    },
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src")
+      },
     },
   };
 });
