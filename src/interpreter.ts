@@ -273,12 +273,14 @@ export class Interpreter {
       }),
     });
 
-    setFn("ask", (question: any) => {
+    setFn("ask", (question: any = "", zero?: any) => {
       MainLoop.stop(); // FIXME: find another way to make this sync, please!
       let input = prompt(String(question)); // FIXME: rework into asynchronous style!
       MainLoop.start(); // FIXME:
 
-      return input;
+      if (typeof zero == "number") return +(input || zero);
+      if (typeof zero == "boolean") return !!(input || zero);
+      return input || zero;
     });
 
     setFn("print", (...words: any[]) => {
