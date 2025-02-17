@@ -13,6 +13,7 @@
       "DOM",
       "DOM.Iterable"
     ],
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
     "moduleDetection": "legacy",

@@ -1,7 +1,6 @@
-import { defineConfig } from "vite";
+import * as path from "node:path";
 import license from "rollup-plugin-license";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
-import path from "path";
+import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
   const isProd = mode == "production";
@@ -19,7 +18,6 @@ export default defineConfig(({ mode }) => {
               },
             },
           }),
-          nodePolyfills(),
         ],
         output: {
           entryFileNames: "app.js",
