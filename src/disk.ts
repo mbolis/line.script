@@ -1,5 +1,4 @@
 import * as output from "./output";
-import EventEmitter from "events";
 
 function debounce(func: Function, wait: number, immediate?: boolean) {
   let timeout: any;
@@ -122,7 +121,7 @@ class Disk {
   }
 }
 
-class SavesList extends EventEmitter {
+class SavesList extends EventTarget {
   private el: HTMLUListElement;
   private itemTpl: HTMLLIElement;
 
@@ -190,7 +189,7 @@ class SavesList extends EventEmitter {
     output.clear();
     output.info(`Save restored: "${name}"`);
 
-    this.emit("restored", state);
+    this.dispatchEvent(new CustomEvent("restored", { detail: state }));
   }
 
   private selectItem(idx: number) {
@@ -221,7 +220,7 @@ class SavesList extends EventEmitter {
     output.clear();
     output.info(`Saved: "${name}"`);
 
-    this.emit("saved", name);
+    this.dispatchEvent(new CustomEvent("saved", { detail: name }));
   }
 
   deleteSave(name: string, item: HTMLElement) {
@@ -235,7 +234,7 @@ class SavesList extends EventEmitter {
     output.clear();
     output.info(`Save deleted: "${name}"`);
 
-    this.emit("deleted", name);
+    this.dispatchEvent(new CustomEvent("deleted", { detail: name }));
   }
 }
 
@@ -262,14 +261,14 @@ class UI {
         this.showDialog()
       }
     });
-    
+
     this.saveButton = document.getElementById("save") as HTMLLIElement;
     this.saveButton.addEventListener("click", this.saveNew.bind(this));
     this.nameSaveButton();
-    saves.on("saved", this.nameSaveButton.bind(this));
-    saves.on("deleted", this.nameSaveButton.bind(this));
-    
-    saves.on("restored", this.hideDialog.bind(this));
+    saves.addEventListener("saved", this.nameSaveButton.bind(this));
+    saves.addEventListener("deleted", this.nameSaveButton.bind(this));
+
+    saves.addEventListener("restored", this.hideDialog.bind(this));
   }
 
   private nameSaveButton() {
