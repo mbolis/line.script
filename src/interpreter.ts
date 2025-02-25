@@ -1,6 +1,6 @@
 import { Node } from "acorn";
-import JSInterpreter from "js-interpreter";
-import { deg2rad, Degrees, Vector2d } from "./geometry";
+import { JSInterpreter } from "../lib/js-interpreter";
+import { Degrees, Vector2d, deg2rad } from "./geometry";
 
 import { Animation, Frame } from "./frames";
 import * as output from "./output";
@@ -37,27 +37,30 @@ export type State = {
   throwValue?: any;
 }
 
-type NativeInterpreter = {
-  ast: Node;
-  appendCode: (code: any) => void;
-  step: () => boolean;
-  run: () => boolean;
-  stateStack: State[];
-  value: any;
-  parentScope: any;
-  setProperty(scope: any, name: string, value: any, desc?: PropertyDescriptor);
-  createNativeFunction(fn: Function): any;
-  createPrimitive(value: any): any;
-  createObject(value: any): any;
-  getScope(): any;
-};
+// type NativeInterpreter = {
+//   ast: Node;
+//   appendCode: (code: any) => void;
+//   step: () => boolean;
+//   run: () => boolean;
+//   stateStack: State[];
+//   paused_: boolean;
+//   value: any;
+//   //parentScope: any;
+//   setProperty(scope: any, name: string, value: any, desc?: PropertyDescriptor): void;
+//   createNativeFunction(fn: Function): any;
+//   createAsyncFunction(fn: Function): any;
+//   //createPrimitive(value: any): any;
+//   createObject(value: any): any;
+//   getScope(): any;
+// };
 interface InitFunc {
-  (interpreter: NativeInterpreter, scope: any): any;
+  (interpreter: JSInterpreter, scope: any): any;
 }
 
 export class Instruction {
   constructor(
     readonly currentState: State,
+    readonly suspended: boolean,
     readonly animation: Animation) { }
 
   get node() {
@@ -131,7 +134,7 @@ const FADE_DURATION = 25;
 //const WAIT_DURATION = 10;
 
 export class Interpreter {
-  private interpreter: NativeInterpreter;
+  private interpreter: JSInterpreter;
 
   private instructionStack: Stack<Node> = (() => {
     let instructionStack = [] as any;
@@ -283,11 +286,17 @@ export class Interpreter {
       return input || zero;
     });
 
-    setFn("print", (...words: any[]) => {
-      output.info(words.join(" "));
+    setAsyncFn("print", (done: () => void, ...words: any[]) => {
+      requestAnimationFrame(() => {
+        output.info(words.join(" "));
+        done();
+      });
     });
-    setFn("println", (...lines: any[]) => {
-      output.info(lines.join("\n") + "\n");
+    setAsyncFn("println", (done: () => void, ...lines: any[]) => {
+      requestAnimationFrame(() => {
+        output.info(lines.join("\n"));
+        done();
+      });
     });
 
     setFn("wait", (seconds: number) => {
@@ -325,15 +334,19 @@ export class Interpreter {
       if (value < min) throw new Error(`${name} should be >= ${min} (was ${value})`);
       if (value > max) throw new Error(`${name} should be <= ${max} (was ${value})`);
     }
-
-    function setFn(name: string, fnWrapper: Function) {
-      interpreter.setProperty(scope, name, fn(fnWrapper), JSInterpreter.READONLY_NONENUMERABLE_DESCRIPTOR);
+    function fn(fnWrapper: Function): any {
+      return interpreter.createNativeFunction(fnWrapper, false);
     }
-    function fn(wrapper: Function) {
-      return interpreter.createNativeFunction(wrapper);
+    function setFn(name: string, fnWrapper: Function) {
+      interpreter.setProperty(scope, name, fn(fnWrapper), JSInterpreter.NONCONFIGURABLE_READONLY_NONENUMERABLE_DESCRIPTOR);
     }
     function prop(name: string, desc: PropertyDescriptor) {
       interpreter.setProperty(scope, name, JSInterpreter.VALUE_IN_DESCRIPTOR, desc);
+    }
+
+    type FnWithCallback = (cb: Function, ...args: any[]) => any;
+    function setAsyncFn(name: string, fnWrapper: FnWithCallback) {
+      interpreter.setProperty(scope, name, interpreter.createAsyncFunction(fnWrapper, true));
     }
   };
 
@@ -341,37 +354,44 @@ export class Interpreter {
     this.interpreter = new JSInterpreter(this.interpreter.ast, this.init);
   }
 
-  private step(): State {
+  private step(): [State, boolean] {
     let recoverState = this.currentState;
     try {
+      if (this.interpreter.paused_) {
+        return [this.currentState, true]
+      }
       if (this.interpreter.step()) {
-        return this.currentState;
+        return [this.currentState, false];
       }
     } catch (e) {
       e.state = recoverState;
       throw e;
     }
-    return null;
+    return [null, false];
   }
   private get currentState(): State {
-    return this.interpreter.stateStack[this.interpreter.stateStack.length - 1];
+    return this.interpreter.stateStack[this.interpreter.stateStack.length - 1] as unknown as State;
   }
   private get currentNode(): Node {
     return this.instructionStack.peek();
   }
 
   private state: State;
+  private suspended: boolean;
   private animation: Animation;
   private currentInstruction(): Instruction {
-    let instruction = new Instruction(this.state, this.animation);
+    let instruction = new Instruction(this.state, this.suspended, this.animation);
     this.animation = null;
     return instruction;
   }
 
   stepToNextInstruction(): Instruction {
     seek: {
-      while (this.state = this.step()) {
-        let node = this.state.node;
+      while ([this.state, this.suspended] = this.step()) {
+        if (this.suspended) return this.currentInstruction();
+        if (!this.state) return null;
+
+        const node = this.state.node;
 
         if (node.type === "ForStatement") {
           if (node !== this.currentNode) {

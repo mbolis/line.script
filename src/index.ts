@@ -286,22 +286,25 @@ function getNextAnimation(infiniteLoopDetector = 0): Animation {
         return studio.setAnimation(instruction.animation || new Animation(10, (_, keyFrame) => keyFrame)); // FIXME:
 
       } else {
+        if (instruction.suspended) {
+          return studio.setAnimation(new Animation(10, (_, keyFrame) => keyFrame));
+        }
         if (instruction.animation) {
           return studio.setAnimation(instruction.animation);
-        } else {
-          if (infiniteLoopDetector < MAX_LOOP_COUNT) {
-            return getNextAnimation(infiniteLoopDetector + 1);
-          } else {
-            clearEditorMarks();
-            markError(instruction.node.start, instruction.node.end);
-            output.clear();
-            output.error("WARNING: Possible infinite loop!");
-            return studio.setAnimation(new Animation(state === "fast-fwd" ? 20000 : 20, (_, keyFrame) => keyFrame));
-          }
         }
+        if (infiniteLoopDetector < MAX_LOOP_COUNT) {
+          return getNextAnimation(infiniteLoopDetector + 1);
+        }
+
+        clearEditorMarks();
+        markError(instruction.node.start, instruction.node.end);
+        output.clear();
+        output.error("WARNING: Possible infinite loop!");
+        return studio.setAnimation(new Animation(state === "fast-fwd" ? 20000 : 20, (_, keyFrame) => keyFrame));
       }
     }
   } catch (err) {
+    console.error(err)
     if (infiniteLoopDetector == 0) {
       setState("done");
       markError(err.state.node.start, err.state.node.end, err.message);
@@ -413,7 +416,7 @@ function ensureRunning() {
         const token = editor.getLineTokens(line, true).find(token => token.start === ch);
         const startPos = CodeMirror.Pos(line, ch);
         const endPos = { ...startPos, ch: startPos.ch + token.string.length };
-        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line+1}:${ch})`);
+        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line + 1}:${ch})`);
       } else {
         const message = err.message ?? err;
         output.error(message);
