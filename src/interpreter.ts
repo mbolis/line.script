@@ -215,7 +215,7 @@ export class Interpreter {
         const segments = curve.lookupValues(delta);
         const { position, facing } = segments[segments.length - 1];
         if (keyFrame.height === 0) {
-          const strokes = segments.map((f, i) => new Stroke((segments[i - 1] || keyFrame).position, f.position));
+          const strokes = segments.map((f, i) => new Stroke((segments[i - 1] || keyFrame).position, f.position, currentColor));
           return keyFrame = keyFrame.with({ position, facing, strokes: [...keyFrame.strokes, ...strokes] });
         }
         return keyFrame = keyFrame.with({ position, facing });
