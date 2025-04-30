@@ -25,7 +25,11 @@ class RAM {
 
   constructor(private editor: CodeMirror.Editor) {
     const ramValue = localStorage.getItem("ram");
-    this.#currentState = ramValue ? JSON.parse(ramValue) : { code: "" };
+    this.#currentState = ramValue
+      ? JSON.parse(ramValue)
+      : {
+        code: (document.getElementById("default_code") as HTMLTemplateElement).content.textContent.trim(),
+      };
     editor.setValue(this.#currentState.code);
 
     editor.on("change", debounce(() => this.writeCode(editor.getValue()), 400));

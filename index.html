@@ -67,6 +67,36 @@
     </div>
   </div>
 
+  <template id="default_code">
+// Rainbow Polygons, by mbolis
+strafeLeft(30)
+
+for (var n = 3; n &lt;= 12; n++) {
+  color = hsl(360 / 12 * (n-3), 1, 0.5)
+  polygon(n, 20)
+
+  // strafeLeft(0.5) // uncomment for a more pleasant effect
+}
+
+background = "white"
+hide()
+
+function polygon(sides, size) {
+  var angle = 360 / sides;
+  for (var i = 0; i &lt; sides; i++) {
+    forward(size)
+    right(angle)
+  }
+}
+function strafeLeft(distance) {
+  up()
+  left(90)
+  forward(distance)
+  right(90)
+  down()
+}
+  </template>
+
   <script type=module src=src/index.ts></script>
 
   <dialog id=help_dialog>

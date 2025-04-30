@@ -415,8 +415,10 @@ function ensureRunning() {
         const ch = +msgCh;
         const token = editor.getLineTokens(line, true).find(token => token.start === ch);
         const startPos = CodeMirror.Pos(line, ch);
-        const endPos = { ...startPos, ch: startPos.ch + token.string.length };
-        markErrorPos(startPos, endPos, `${message} '${token.string}' (${line + 1}:${ch})`);
+        const endPos = { ...startPos, ch: startPos.ch + (token?.string.length ?? 0) };
+        markErrorPos(startPos, endPos, token
+          ? `${message} '${token.string}' (${line + 1}:${ch})`
+          : `Unexpected end of input (${line + 1}:${ch})`);
       } else {
         const message = err.message ?? err;
         output.error(message);
